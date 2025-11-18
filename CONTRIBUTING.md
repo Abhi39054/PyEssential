@@ -1,6 +1,6 @@
-# 🤝 Contributing to PyEssentials
+# 🤝 Contributing to PyEssential
 
-Thank you for considering contributing to `PyEssentials`! We rely on community contributions to keep this collection of utilities useful and robust.
+Thank you for considering contributing to `PyEssential`! We rely on community contributions to keep this collection of utilities useful and robust.
 
 Please review this document to ensure a smooth contribution process.
 
@@ -10,10 +10,10 @@ Please review this document to ensure a smooth contribution process.
 
 If you find a bug in the code:
 
-1.  **Search Existing Issues:** Check the [Issues page](https://github.com/YourUser/PyEssentials/issues) to see if the bug has already been reported.
+1.  **Search Existing Issues:** Check the [Issues page](https://github.com/YourUser/PyEssential/issues) to see if the bug has already been reported.
 2.  **Open a New Issue:** If not reported, open a new issue.
 3.  **Provide Details:** Clearly describe the bug, including:
-    * The version of `PyEssentials` you are using.
+    * The version of `PyEssential` you are using.
     * Your Python version.
     * **Steps to reproduce** the error.
     * The expected behavior versus the actual behavior.
@@ -39,8 +39,8 @@ We use a standard GitHub flow for contributions.
 Start by forking the repository to your own GitHub account and cloning it locally.
 
 ```bash
-git clone https://github.com/Abhi39054/PyEssentials.git
-cd PyEssentials
+git clone https://github.com/Abhi39054/PyEssential.git
+cd PyEssential
 ```
 
 ### Set up the Environment
@@ -67,7 +67,7 @@ git checkout -b fix/issue-10-time-it
 git checkout -b feat/add-new-validator
 ```
 
-Implement your code in the appropriate subdirectory (e.g., pyessentials/decorators/).
+Implement your code in the appropriate subdirectory (e.g., pyessential/decorators/).
 
 Write Tests: All new features and bug fixes must include corresponding unit tests in the tests/ directory to prove correctness.
 
@@ -93,7 +93,7 @@ git push origin your-branch-name
 
 ### 6. Submit a Pull Request (PR)
 
-Go to the original PyEssentials repository on GitHub and open a Pull Request from your branch to the main branch.
+Go to the original PyEssential repository on GitHub and open a Pull Request from your branch to the main branch.
 
 Reference any related issues (e.g., Fixes #10).
 

@@ -1,5 +1,5 @@
 """
-    Name: pyessentials.generators
+    Name: pyessential.generators
     Description: A module providing utility functions for generating random data.
     Author: Abhishek Kumar
 """

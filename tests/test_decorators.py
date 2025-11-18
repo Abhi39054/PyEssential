@@ -1,6 +1,6 @@
 # tests/test_decorators.py
 import time
-from pyessentials.decorators import timeit
+from pyessential.decorators import timeit
 
 # Example: Simple test to ensure the function returns correctly
 def test_time_it_returns_correct_value():

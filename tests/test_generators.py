@@ -1,6 +1,6 @@
 # tests/test_generators.py
 import time
-from pyessentials.generators import generate_random_int, generate_secret_key
+from pyessential.generators import generate_random_int, generate_secret_key
 
 
 # Test to ensure the generated integer is within the specified range

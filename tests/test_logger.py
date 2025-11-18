@@ -5,7 +5,7 @@ import re
 import json
 import sys
 import logging
-from pyessentials.logger import Logger # Assuming the main Logger class is saved in 'logger.py'
+from pyessential.logger import Logger # Assuming the main Logger class is saved in 'logger.py'
 
 # --- Configuration ---
 TEMP_LOG_DIR = "./temp_pytest_logs"
