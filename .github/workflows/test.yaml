@@ -1,0 +1,49 @@
+name: 🐍 Python Package Test
+
+# Triggers the workflow on pushes to 'main' and all pull requests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allows manual execution for testing
+  workflow_dispatch:
+
+jobs:
+  test_on_linux:
+    # Use the latest Ubuntu runner, which is common for CI
+    runs-on: ubuntu-latest
+    
+    # Optional: Use a strategy matrix to test on multiple Python versions
+    strategy:
+      matrix:
+        python-version: [ '3.9', '3.11', '3.12' ] # Test with a few common versions
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        
+      - name: ⚙️ Set up Python ${{ matrix.python-version }}
+        # The standard action for setting up a Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: 📦 Install dependencies
+        # Install pip, then install your package's dependencies and a test runner (like pytest)
+        run: |
+          python -m pip install --upgrade pip
+          # You typically install your dependencies from requirements.txt or setup.cfg/pyproject.toml
+          # Example for installing a test runner and dependencies:
+          pip install pytest
+          
+          # If you use a requirements file:
+          # pip install -r requirements.txt
+          
+          # Install your package itself in editable mode
+          pip install -e .
+          
+      - name: ✅ Run tests
+        # This command runs pytest, which is standard for most Python projects
+        run: pytest
+        # If you were using unittest: run: python -m unittest discover
