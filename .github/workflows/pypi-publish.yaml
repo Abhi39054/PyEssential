@@ -3,6 +3,7 @@ name: 🐍 Python Package CI/CD
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -17,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '3.9', '3.11', '3.12' ]
+        python-version: [ '3.9', '3.10', '3.11', '3.12' ]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
@@ -30,6 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install -e .
+      - run: pyessential --version
       - run: pytest
 
   build_sdist_wheel:
@@ -43,8 +45,19 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: python -m pip install build
+      - name: Check tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          PKG_VERSION=$(python -c "exec(open('pyessential/_version.py').read()); print(__version__)")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error ::Tag $GITHUB_REF_NAME does not match version $PKG_VERSION in _version.py"
+            exit 1
+          fi
+
+      - run: python -m pip install build twine
       - run: python -m build
+      - run: twine check dist/*
 
       - uses: actions/upload-artifact@v4
         with:
@@ -55,13 +68,7 @@ jobs:
     name: 🚀 Publish to TestPyPI
     needs: build_sdist_wheel
     runs-on: ubuntu-latest
-
-    if: |
-      success() &&
-      (
-        contains(github.event.head_commit.message, 'pypi release') ||
-        contains(github.event.head_commit.message, 'pypi publish')
-      )
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - uses: actions/download-artifact@v4
@@ -69,8 +76,7 @@ jobs:
           name: python-distribution-files
           path: dist/
 
-      - id: publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           packages-dir: dist/
@@ -78,24 +84,15 @@ jobs:
           password: ${{ secrets.TESTPYPI_API_TOKEN }}
           skip-existing: true
 
-      - if: steps.publish.outputs.skipped == 'true'
-        run: echo "::warning ::Version already exists on TestPyPI"
-
   pypi_publish:
     name: 🚀 Publish to PyPI (Requires Approval)
     needs: pypi_test_publish
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
 
     environment:
       name: pypi-prod
       url: https://pypi.org/project/pyessential/
-
-    if: |
-      success() &&
-      (
-        contains(github.event.head_commit.message, 'pypi release') ||
-        contains(github.event.head_commit.message, 'pypi publish')
-      )
 
     steps:
       - uses: actions/download-artifact@v4
@@ -108,4 +105,26 @@ jobs:
           packages-dir: dist/
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
+
+  github_release:
+    name: 📦 Create GitHub Release
+    needs: pypi_publish
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-distribution-files
+          path: dist/
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "PyEssential $GITHUB_REF_NAME" \
+            --generate-notes

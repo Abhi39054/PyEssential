@@ -64,15 +64,19 @@ pytest
 
 ### Releasing
 
-1. Bump the version in `pyessential/_version.py`.
-2. Commit and push to `main` with `pypi release` in the commit message:
-```bash
-   git commit -am "chore: bump to 0.1.3 - pypi release"
+1. Bump the version in `pyessential/_version.py`, commit, and push to `main`:
+   ```bash
+   git commit -am "chore: bump version to 0.1.4"
    git push origin main
-```
-3. The CI workflow runs tests, builds the package, publishes to TestPyPI, then waits for approval before publishing to PyPI.
+   ```
+2. Tag the release and push the tag:
+   ```bash
+   git tag -a v0.1.4 -m "Release 0.1.4"
+   git push origin v0.1.4
+   ```
+3. CI runs the tests, builds the package, publishes to TestPyPI, waits for approval, publishes to PyPI, and creates the GitHub Release.
 
-The package version lives in one place: `pyessential/_version.py`.
+The tag must match the version in `_version.py` (`v0.1.4` ↔ `0.1.4`), or the build fails.
 
 ## 🤝 Contributing
 

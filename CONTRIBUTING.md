@@ -10,7 +10,7 @@ Please review this document to ensure a smooth contribution process.
 
 If you find a bug in the code:
 
-1.  **Search Existing Issues:** Check the [Issues page](https://github.com/YourUser/PyEssential/issues) to see if the bug has already been reported.
+1.  **Search Existing Issues:** Check the [Issues page](https://github.com/Abhi39054/PyEssential/issues) to see if the bug has already been reported.
 2.  **Open a New Issue:** If not reported, open a new issue.
 3.  **Provide Details:** Clearly describe the bug, including:
     * The version of `PyEssential` you are using.
