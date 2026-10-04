@@ -13,6 +13,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - `py.typed` marker, so type checkers can use the package's type hints.
 ### Changed
 - `@timeit` now prints the elapsed time even if the function raises, and uses `time.perf_counter()` for more accurate timing.
+- `generate_random_int` and `generate_secret_key` now raise `ValueError` for invalid arguments instead of returning an empty key or failing with an obscure error.
+- Corrected the `generate_secret_key` docs: `length` is the number of bytes, so the hex key is twice as long.
 
 ## [0.1.4] - 2026-10-03
 ### Added

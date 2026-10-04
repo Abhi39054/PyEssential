@@ -1,59 +1,65 @@
 # tests/test_generators.py
-import time
+import pytest
+
 from pyessential.generators import generate_random_int, generate_secret_key
 
 
-# Test to ensure the generated integer is within the specified range
-def test_generate_random_int_within_range():
-    min_value = 0
-    max_value = 100
-    result = generate_random_int(min_value, max_value)
-    assert min_value <= result <= max_value, f"Result {result} is not within range {min_value}-{max_value}"
+# ---------- generate_random_int ----------
 
-# Test to check the default range
+@pytest.mark.parametrize(
+    "min_value, max_value",
+    [(0, 100), (10, 10), (-10, -5), (-5, 5), (1000, 2000)],
+)
+def test_generate_random_int_within_range(min_value, max_value):
+    # Many draws, so a single lucky value can't hide an off-by-one bug
+    for _ in range(100):
+        assert min_value <= generate_random_int(min_value, max_value) <= max_value
+
+
 def test_generate_random_int_default_range():
-    result = generate_random_int()
-    assert 0 <= result <= 100, f"Result {result} is not within default range 0-100"
+    for _ in range(100):
+        assert 0 <= generate_random_int() <= 100
 
-# Test to check multiple calls produce different results
+
+def test_generate_random_int_reaches_both_ends_of_range():
+    # Both bounds are inclusive. Missing a value in 300 draws of 3 options
+    # has a probability of about 1e-53, so this test is not flaky.
+    assert {generate_random_int(1, 3) for _ in range(300)} == {1, 2, 3}
+
+
+def test_generate_random_int_single_value_range():
+    assert generate_random_int(10, 10) == 10
+
+
 def test_generate_random_int_multiple_calls():
-    results = {generate_random_int() for _ in range(10)}
-    assert len(results) > 1, "Multiple calls to generate_random_int produced the same result"
+    assert len({generate_random_int() for _ in range(20)}) > 1
 
-# Test to check edge case where min_value equals max_value
-def test_generate_random_int_edge_case():
-    min_value = 10
-    max_value = 10
-    result = generate_random_int(min_value, max_value)
-    assert result == min_value, f"Result {result} is not equal to the edge case value {min_value}"
 
-# Test to check negative range
-def test_generate_random_int_negative_range():
-    min_value = -10
-    max_value = -5
-    result = generate_random_int(min_value, max_value)
-    assert min_value <= result <= max_value, f"Result {result} is not within range {min_value}-{max_value}"
+def test_generate_random_int_min_greater_than_max_raises():
+    with pytest.raises(ValueError, match="min_value"):
+        generate_random_int(10, 1)
 
-# Test to check large range
-def test_generate_random_int_large_range():
-    min_value = 1000
-    max_value = 2000
-    result = generate_random_int(min_value, max_value)
-    assert min_value <= result <= max_value, f"Result {result} is not within range {min_value}-{max_value}"
 
-# Test for generate secret key
-def test_generate_secret_key_length():
-    length = 16
-    result = generate_secret_key(length)
-    assert len(result) == length * 2, f"Secret key length {len(result)} does not match expected length {length * 2}"
+# ---------- generate_secret_key ----------
 
-def test_generate_secret_key_different_calls():
-    result1 = generate_secret_key()
-    result2 = generate_secret_key()
-    assert result1 != result2, "Multiple calls to generate_secret_key produced the same result"
+@pytest.mark.parametrize("length", [1, 8, 16, 32, 64])
+def test_generate_secret_key_length_is_twice_the_byte_count(length):
+    assert len(generate_secret_key(length)) == length * 2
+
 
 def test_generate_secret_key_default_length():
-    default_length = 32
-    result = generate_secret_key()
-    assert len(result) == default_length * 2 , f"Default secret key length {len(result)} does not match expected length {default_length * 2}"
-    
+    assert len(generate_secret_key()) == 64
+
+
+def test_generate_secret_key_is_hex():
+    assert set(generate_secret_key(32)) <= set("0123456789abcdef")
+
+
+def test_generate_secret_key_different_calls():
+    assert generate_secret_key() != generate_secret_key()
+
+
+@pytest.mark.parametrize("bad_length", [0, -1])
+def test_generate_secret_key_invalid_length_raises(bad_length):
+    with pytest.raises(ValueError, match="length"):
+        generate_secret_key(bad_length)
