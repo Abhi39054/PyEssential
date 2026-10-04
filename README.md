@@ -44,7 +44,33 @@ def slow_function():
     sum(range(1_000_000))
 
 slow_function()
+# [slow_function] executed in 0.0123 seconds.
 ```
+
+### `@retry`
+
+Retries a function when it raises, waiting longer between each attempt. After the last attempt, the original exception is re-raised.
+
+```python
+from pyessential.decorators import retry
+
+@retry(tries=4, delay=0.5, backoff=2, exceptions=(ConnectionError, TimeoutError))
+def fetch_data():
+    ...
+```
+
+This waits 0.5s, 1s, then 2s between attempts. Only the listed exceptions trigger a retry; anything else is raised immediately.
+
+| Option | Meaning |
+|--------|---------|
+| `tries` | Total attempts, including the first (default 3) |
+| `delay` | Seconds to wait after the first failure (default 1.0) |
+| `backoff` | Multiplier applied to the wait after each failure (default 2.0; use 1 for a constant delay) |
+| `max_delay` | Upper limit for any single wait |
+| `jitter` | Up to this many extra random seconds added to each wait |
+| `exceptions` | Exception class or tuple of classes that trigger a retry (default `Exception`) |
+| `on_retry` | Callback `on_retry(exc, attempt, wait)`, e.g. for logging |
+
 
 ### Command line
 

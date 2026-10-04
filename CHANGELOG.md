@@ -9,6 +9,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 ## [0.1.5] - 2026-10-04
 ### Added
 - `@timeit` now supports `async` functions.
+- `@retry` decorator with exponential backoff, jitter, `max_delay`, and async support.
+- `py.typed` marker, so type checkers can use the package's type hints.
 ### Changed
 - `@timeit` now prints the elapsed time even if the function raises, and uses `time.perf_counter()` for more accurate timing.
 
