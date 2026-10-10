@@ -31,6 +31,6 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Releases are now published from `v*` git tags.
 
 [Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.6...HEAD
-[0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
+[0.1.6]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.4
