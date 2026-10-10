@@ -6,6 +6,12 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-10
+### Changed
+- Releases are now published with PyPI Trusted Publishing instead of API tokens.
+### Fixed
+- The `LICENSE` and `CONTRIBUTING.md` links in the README now work on the PyPI page.
+
 ## [0.1.5] - 2026-10-04
 ### Added
 - `@timeit` now supports `async` functions.
@@ -24,6 +30,7 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Minimum supported Python version is now 3.9.
 - Releases are now published from `v*` git tags.
 
-[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.6...HEAD
+[0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.4

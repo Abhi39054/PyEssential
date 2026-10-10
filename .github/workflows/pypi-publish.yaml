@@ -70,6 +70,13 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
 
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/pyessential/
+
+    permissions:
+      id-token: write   # lets the job request a short-lived upload credential
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -80,8 +87,6 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           packages-dir: dist/
-          user: __token__
-          password: ${{ secrets.TESTPYPI_API_TOKEN }}
           skip-existing: true
 
   pypi_publish:
@@ -94,6 +99,9 @@ jobs:
       name: pypi-prod
       url: https://pypi.org/project/pyessential/
 
+    permissions:
+      id-token: write
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -103,8 +111,6 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
 
   github_release:
     name: 📦 Create GitHub Release
