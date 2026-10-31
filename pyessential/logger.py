@@ -2,10 +2,17 @@
 Logger utility for application logging.
 
 This module provides the ``Logger`` class, a logging utility that integrates
-with Python's standard ``logging`` library. It configures three separate
-loggers/files for STDIN (ingress), STDOUT (general/info) and ERROR
-(errors/critical) messages, with timed log rotation and optional console
-output.
+with Python's standard ``logging`` library. Each ``Logger`` writes to:
+
+* ``<log_name>_stdout.log`` - the main log: every record at or above the
+  configured level, in chronological order (errors included by default, so you
+  can see what happened right before a failure).
+* ``<log_name>_error.log``  - a focused log holding only ERROR and CRITICAL
+  records (including exceptions).
+* ``<log_name>_stdin.log``  - input/ingress events recorded with ``stdin()``.
+
+All files use timed rotation. Optional console output sends records below ERROR
+to ``sys.stdout`` and ERROR/CRITICAL to ``sys.stderr``.
 
 Thread safety:
     * Logging calls (``debug``, ``info``, ``error``, ``log_error``, ...) are
@@ -50,15 +57,27 @@ _LOCK = threading.RLock()
 _INSTANCES: "weakref.WeakValueDictionary[str, Logger]" = weakref.WeakValueDictionary()
 
 
+class _BelowLevelFilter(logging.Filter):
+    """Pass only records strictly below ``level`` (e.g. everything under ERROR)."""
+
+    def __init__(self, level: int) -> None:
+        super().__init__()
+        self.level = level
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno < self.level
+
+
 class Logger:
     """
-    A logging utility class for managing application logs with separate streams.
+    A logging utility class for managing application logs.
 
-    It sets up three distinct, rotation-enabled log files:
+    Files written (in ``log_dir``):
 
-    1. ``<log_name>_stdin.log``  - input/ingress events
-    2. ``<log_name>_stdout.log`` - debug/info/warning messages
-    3. ``<log_name>_error.log``  - error/critical messages and exceptions
+    1. ``<log_name>_stdout.log`` - main log, all levels in order. Includes
+       ERROR/CRITICAL unless ``include_errors_in_main=False``.
+    2. ``<log_name>_error.log``  - ERROR and CRITICAL only.
+    3. ``<log_name>_stdin.log``  - events recorded with ``stdin()``.
 
     The class can be used as a context manager to ensure handlers are closed.
 
@@ -95,6 +114,7 @@ class Logger:
         fmt: str = "%(asctime)s.%(msecs)03d - %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
         datefmt: str = "%Y-%m-%d %H:%M:%S",
         encoding: str = "utf-8",
+        include_errors_in_main: bool = True,
     ) -> None:
         """
         Args:
@@ -109,18 +129,25 @@ class Logger:
             when: Time interval type for log rotation. Default is ``'midnight'``.
             interval: Interval for log rotation. Default is 1.
             backup_count: Number of backup log files to keep. Default is 7.
-            enable_console: Also log to the console. Default is False.
+            enable_console: Also log to the console (records below ERROR to
+                stdout, ERROR and above to stderr). Default is False.
             fmt: Log message format.
             datefmt: Date format used in logs.
             encoding: Encoding for log files. Default is ``'utf-8'``.
+            include_errors_in_main: If True (default), ERROR/CRITICAL records
+                are written to the main ``_stdout.log`` as well as to
+                ``_error.log``, so the main log tells the whole story. Set to
+                False to keep the main log free of errors (previous behavior).
 
         Raises:
             ValueError: If ``level`` is not a valid level name or int.
         """
         log_level = self._resolve_level(level)
+        error_level = max(log_level, logging.ERROR)
 
         self.log_dir = os.path.abspath(log_dir)
         self.log_name = log_name
+        self.include_errors_in_main = include_errors_in_main
         self._closed = False
 
         self.stdin_path = os.path.join(self.log_dir, f"{self.log_name}_stdin.log")
@@ -128,14 +155,12 @@ class Logger:
         self.error_path = os.path.join(self.log_dir, f"{self.log_name}_error.log")
 
         formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
-
-        common = dict(
-            level=log_level,
+        file_opts = dict(
             when=when,
             interval=interval,
             backup_count=backup_count,
-            formatter=formatter,
             encoding=encoding,
+            formatter=formatter,
         )
 
         with _LOCK:
@@ -152,32 +177,39 @@ class Logger:
 
             built = []
             try:
-                # Three dedicated loggers so routing is explicit and simple
-                self._stdin_logger = self._build_logger(
-                    name=f"{self.log_name}.stdin",
-                    filepath=self.stdin_path,
-                    enable_console=False,  # stdin is typically not logged to console
-                    **common,
-                )
+                # --- stdin: its own logger and file ---
+                self._stdin_logger = self._build_logger(f"{self.log_name}.stdin", log_level)
                 built.append(self._stdin_logger)
-
-                self._stdout_logger = self._build_logger(
-                    name=f"{self.log_name}.stdout",
-                    filepath=self.stdout_path,
-                    enable_console=enable_console,
-                    console_to_stderr=False,  # -> sys.stdout
-                    **common,
+                self._stdin_logger.addHandler(
+                    self._file_handler(self.stdin_path, log_level, **file_opts)
                 )
-                built.append(self._stdout_logger)
 
-                self._error_logger = self._build_logger(
-                    name=f"{self.log_name}.error",
-                    filepath=self.error_path,
-                    enable_console=enable_console,
-                    console_to_stderr=True,  # -> sys.stderr
-                    **common,
+                # --- main logger: one logger, several level-filtered handlers ---
+                self._logger = self._build_logger(f"{self.log_name}.main", log_level)
+                built.append(self._logger)
+
+                # Main file: everything (optionally without ERROR+)
+                main_fh = self._file_handler(self.stdout_path, log_level, **file_opts)
+                if not include_errors_in_main:
+                    main_fh.addFilter(_BelowLevelFilter(logging.ERROR))
+                self._logger.addHandler(main_fh)
+
+                # Error file: ERROR and CRITICAL only
+                self._logger.addHandler(
+                    self._file_handler(self.error_path, error_level, **file_opts)
                 )
-                built.append(self._error_logger)
+
+                if enable_console:
+                    out_h = logging.StreamHandler(sys.stdout)
+                    out_h.setLevel(log_level)
+                    out_h.addFilter(_BelowLevelFilter(logging.ERROR))
+                    out_h.setFormatter(formatter)
+                    self._logger.addHandler(out_h)
+
+                    err_h = logging.StreamHandler(sys.stderr)
+                    err_h.setLevel(error_level)
+                    err_h.setFormatter(formatter)
+                    self._logger.addHandler(err_h)
             except Exception:
                 # Don't leak handlers if setup fails partway through.
                 for lg in built:
@@ -188,39 +220,40 @@ class Logger:
 
     # --------------- Public Methods ---------------
     def debug(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
-        """Log a debug message to the stdout logger."""
-        self._stdout_logger.debug(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
+        """Log a debug message to the main log."""
+        self._logger.debug(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def info(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
-        """Log an info message to the stdout logger."""
-        self._stdout_logger.info(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
+        """Log an info message to the main log."""
+        self._logger.info(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def warning(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
-        """Log a warning message to the stdout logger."""
-        self._stdout_logger.warning(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
+        """Log a warning message to the main log."""
+        self._logger.warning(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def error(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
-        """Log an error message to the error logger."""
-        self._error_logger.error(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
+        """Log an error message to the error log (and the main log by default)."""
+        self._logger.error(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def critical(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
-        """Log a critical message to the error logger."""
-        self._error_logger.critical(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
+        """Log a critical message to the error log (and the main log by default)."""
+        self._logger.critical(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def exception(self, msg, *args, stacklevel=2, **kwargs) -> None:
-        """Log an error message with the current exception info to the error logger.
+        """Log an error message with the current exception info.
 
-        Intended to be called from an ``except`` block.
+        Goes to the error log (and the main log by default). Intended to be
+        called from an ``except`` block.
         """
         kwargs["exc_info"] = True
-        self._error_logger.error(msg, *args, stacklevel=stacklevel, **kwargs)
+        self._logger.error(msg, *args, stacklevel=stacklevel, **kwargs)
 
     def stdin(self, msg, *args, exc_info=False, stacklevel=2, **kwargs) -> None:
         """Explicitly record 'input' or ingress events."""
         self._stdin_logger.info(msg, *args, exc_info=exc_info, stacklevel=stacklevel, **kwargs)
 
     def log_error(self, err: BaseException) -> Dict[str, Any]:
-        """Log an exception with its traceback to the error logger.
+        """Log an exception with its traceback at ERROR level.
 
         Works inside or outside an ``except`` block, since the traceback is
         taken from the exception object itself. Thread-safe (uses no shared
@@ -254,7 +287,7 @@ class Logger:
 
         # Traceback is already in `data`, so no exc_info (avoids duplication).
         # stacklevel=2 makes [file:line] point at the caller of log_error.
-        self._error_logger.error(data, stacklevel=2)
+        self._logger.error(data, stacklevel=2)
         return data
 
     def close(self) -> None:
@@ -269,7 +302,7 @@ class Logger:
             if _INSTANCES.get(self.log_name) is not self:
                 return
 
-            for lg in (self._stdin_logger, self._stdout_logger, self._error_logger):
+            for lg in (self._stdin_logger, self._logger):
                 self._close_handlers(lg)
 
             _INSTANCES.pop(self.log_name, None)
@@ -318,25 +351,26 @@ class Logger:
                 pass
 
     @staticmethod
-    def _build_logger(
-        name: str,
-        filepath: str,
-        level: int,
-        when: str,
-        interval: int,
-        backup_count: int,
-        formatter: logging.Formatter,
-        encoding: str,
-        enable_console: bool = False,
-        console_to_stderr: bool = False,
-    ) -> logging.Logger:
+    def _build_logger(name: str, level: int) -> logging.Logger:
+        """Get the named logger, reset to a clean state (no handlers, no propagation)."""
         logger = logging.getLogger(name)
         logger.setLevel(level)
         # Close (not just drop) existing handlers to avoid leaked file handles
         # and rotation/locking problems on re-initialization.
         Logger._close_handlers(logger)
         logger.propagate = False  # Don't pass messages to the root logger
+        return logger
 
+    @staticmethod
+    def _file_handler(
+        filepath: str,
+        level: int,
+        when: str,
+        interval: int,
+        backup_count: int,
+        encoding: str,
+        formatter: logging.Formatter,
+    ) -> TimedRotatingFileHandler:
         fh = TimedRotatingFileHandler(
             filename=filepath,
             when=when,
@@ -346,14 +380,6 @@ class Logger:
             delay=True,
             utc=False,
         )
+        fh.setLevel(level)
         fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-        if enable_console:
-            stream = sys.stderr if console_to_stderr else sys.stdout
-            sh = logging.StreamHandler(stream)
-            sh.setFormatter(formatter)
-            sh.setLevel(level)
-            logger.addHandler(sh)
-
-        return logger
+        return fh
