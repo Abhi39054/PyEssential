@@ -6,6 +6,22 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-10
+### Changed
+- Default `log_dir` is now `"logs"` (was `"../logs"`).
+- `<name>_stdout.log` now also contains ERROR/CRITICAL records, so it shows events in order.
+  Use `include_errors_in_main=False` for the old behavior. `<name>_error.log` still holds errors only.
+
+### Fixed
+- `log_error` no longer logs the traceback twice, reports the correct location, and works outside an `except` block.
+- Old handlers are now closed when a `Logger` is re-created (no leaked file handles).
+- An invalid `level` now raises `ValueError`; int levels are accepted.
+- Docs now refer to `_error.log` instead of `_stderr.log`.
+
+### Added
+- Thread-safe creation and closing; a `RuntimeWarning` when a second `Logger` reuses an active `log_name`.
+- Type hints and an expanded test suite.
+
 ## [0.1.6] - 2026-10-10
 ### Changed
 - Releases are now published with PyPI Trusted Publishing instead of API tokens.
@@ -30,7 +46,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Minimum supported Python version is now 3.9.
 - Releases are now published from `v*` git tags.
 
-[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.4
