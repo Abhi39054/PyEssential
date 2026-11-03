@@ -6,6 +6,14 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-03
+### Added
+- New `pyessential.folders` module with `ensure_folder`, `list_files`, `list_folders`, `is_folder_empty`, `get_folder_size`, `clear_folder`, `delete_folder`, `delete_old_files`, and `remove_empty_folders`.
+- Destructive functions (`clear_folder`, `delete_old_files`, `remove_empty_folders`) support `dry_run=True` and return the affected `Path` list.
+- Built-in safety checks that refuse to modify filesystem roots or the user's home folder, ignore folder symlinks when walking/deleting, and clear read-only flags on Windows.
+- Unit tests in `tests/test_folders.py`
+- Added documentation in `.docs/`.
+
 ## [0.1.7] - 2026-10-10
 ### Changed
 - Default `log_dir` is now `"logs"` (was `"../logs"`).
@@ -46,7 +54,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Minimum supported Python version is now 3.9.
 - Releases are now published from `v*` git tags.
 
-[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.5
