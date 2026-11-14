@@ -6,11 +6,16 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]   
 
+## [0.1.9] - 2026-11-14
+
 ### Added
 - `pyessential.json_utils`: helpers for reading and writing JSON and JSON Lines files
   (atomic writes), converting dates/UUIDs/sets, and working with nested data
   (`get_by_path`, `set_by_path`, `flatten_json`, `deep_merge`, `diff_json`, `remove_keys`,
   `keys_to_snake_case`, and more).
+
+### Fixed
+- pins CI to ubuntu-24.04 so Python 3.9 is available.
 
 ## [0.1.8] - 2026-11-03
 ### Added
@@ -60,7 +65,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Minimum supported Python version is now 3.9.
 - Releases are now published from `v*` git tags.
 
-[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.6
