@@ -4,7 +4,13 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [Unreleased]   
+
+### Added
+- `pyessential.json_utils`: helpers for reading and writing JSON and JSON Lines files
+  (atomic writes), converting dates/UUIDs/sets, and working with nested data
+  (`get_by_path`, `set_by_path`, `flatten_json`, `deep_merge`, `diff_json`, `remove_keys`,
+  `keys_to_snake_case`, and more).
 
 ## [0.1.8] - 2026-11-03
 ### Added
