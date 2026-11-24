@@ -6,6 +6,12 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]   
 
+### Added
+- `pyessential.validators`: helpers for validating common data formats with zero external
+  dependencies (`is_email`, `is_url`, `is_uuid`, `is_ip`, `is_port`, `is_hex`,
+  `is_domain`, `is_mac_address`, `is_json`, and `is_slug`).
+- Unit tests in `tests/test_validators.py` and documentation in `docs/validators.md`.
+
 ## [0.1.9] - 2026-11-14
 
 ### Added

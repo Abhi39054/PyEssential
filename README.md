@@ -196,6 +196,7 @@ Detailed guides with parameters and examples:
 - [Generators](https://github.com/Abhi39054/PyEssential/blob/main/.docs/generators.md)
 - [Logger](https://github.com/Abhi39054/PyEssential/blob/main/.docs/logger.md)
 - [JSON utilities](https://github.com/Abhi39054/PyEssential/blob/main/.docs/json_utils.md)
+- [Validator Utility](https://github.com/Abhi39054/PyEssential/blob/main/.docs/validators.md)
 
 ## Development
 
