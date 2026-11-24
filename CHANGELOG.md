@@ -6,6 +6,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]   
 
+## [0.2.0] - 2026-11-24
+
 ### Added
 - `pyessential.validators`: helpers for validating common data formats with zero external
   dependencies (`is_email`, `is_url`, `is_uuid`, `is_ip`, `is_port`, `is_hex`,
@@ -71,7 +73,8 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Minimum supported Python version is now 3.9.
 - Releases are now published from `v*` git tags.
 
-[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/Abhi39054/PyEssential/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.2.0
 [0.1.9]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Abhi39054/PyEssential/releases/tag/v0.1.7
