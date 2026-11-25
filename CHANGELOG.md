@@ -6,6 +6,13 @@ and this project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]   
 
+### Added
+- `pyessential.strings`: helpers for cleaning, formatting, and transforming strings with zero
+  external dependencies (`remove_accents`, `slugify`, `truncate`, `mask_secret`,
+  `to_snake_case`, `to_camel_case`, `to_pascal_case`, `to_kebab_case`,
+  `normalize_whitespace`, `strip_html`, and `is_blank`).
+- Unit tests in `tests/test_strings.py` and documentation in `docs/strings.md`.
+
 ## [0.2.0] - 2026-11-24
 
 ### Added
